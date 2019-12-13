@@ -1,12 +1,14 @@
 % Make a grid in 2d space
-whatGradients = 'spatialLag'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale'
-numGradients = 100;
+whatGradients = 'ExpDecaySingle'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale'
+numGradients = 200;
 
 % Make 2-d spatial grid in [X,Y]:
-extentSim = 50;
-extentZoom = 20;
-resolution = 25;
+extentSim = 30;
+extentZoom = 10;
+resolution = 20;
 [coOrds,X,Y] = MakeGrid(extentSim,resolution);
+xRange = [min(X(:)),max(X(:))];
+yRange = [min(Y(:)),max(Y(:))];
 numAreas = length(coOrds);
 
 % Distance (m) corresponding to a unit change in each axis
@@ -26,39 +28,70 @@ for i = 1:numGradients
         rho = 0.5;
         g = GenerateSpatialLagMap(dMat,d0,rho);
     case 'linear'
-        X0 = rand*(xRange(end)-xRange(1))+xRange(1);
-        Y0 = rand*(yRange(end)-yRange(1))+yRange(1);
+        X0 = rand*(xRange(2)-xRange(1))+xRange(1);
+        Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
         rCoeff = rand(2,1)-0.5;
         g = rCoeff(1)*(X-X0) + rCoeff(2)*(Y-Y0);
     case 'poly'
         pOrderX = randi(1);
         pOrderY = randi(2);
-        X0 = rand*(xRange(end)-xRange(1))+xRange(1);
-        Y0 = rand*(yRange(end)-yRange(1))+yRange(1);
+        X0 = rand*(xRange(2)-xRange(1))+xRange(1);
+        Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
         rCoeff = rand(2,1)-0.5;
         g = rCoeff(1)*(X-X0).^pOrderX + rCoeff(2)*(Y-Y0).^pOrderY;
     case 'Gaussian'
         A = rand();
-        X0 = rand*(xRange(end)-xRange(1))+xRange(1);
-        Y0 = rand*(yRange(end)-yRange(1))+yRange(1);
-        sigma2X = rand*(xRange(end)-xRange(1))/2;
-        sigma2Y = rand*(yRange(end)-yRange(1))/2;
+        X0 = rand*(xRange(2)-xRange(1))+xRange(1);
+        Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
+        sigma2X = rand*(xRange(2)-xRange(1))/2;
+        sigma2Y = rand*(yRange(2)-yRange(1))/2;
         g = A*exp(-((X-X0).^2./sigma2X + (Y-Y0).^2./sigma2Y));
     case 'GaussianFixedScale'
         A = 1;
-        X0 = rand*(xRange(end)-xRange(1))+xRange(1);
-        Y0 = rand*(yRange(end)-yRange(1))+yRange(1);
-        sigma2X = (xRange(end)-xRange(1))/5;
-        sigma2Y = (yRange(end)-yRange(1))/5;
-        g = A*exp(-((X-X0).^2./sigma2X + (Y-Y0).^2./sigma2Y));
+        scaleProp = 1/4;
+        X0 = rand*(xRange(2)-xRange(1))+xRange(1);
+        Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
+        sigma2X = (xRange(2)-xRange(1))*scaleProp;
+        sigma2Y = (yRange(2)-yRange(1))*scaleProp;
+        g = A*exp(-(((X-X0)/sigma2X).^2 + ((Y-Y0)/sigma2Y).^2));
+    case 'ExpDecaySingle'
+        d0 = rand*20;
+        X0 = rand*(xRange(2)-xRange(1))+xRange(1);
+        Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
+        D = (X-X0).^2 + (Y-Y0).^2;
+        g = exp(-D/d0) + 0.2*randn(size(D));
     end
     gStretch = g(:);
     expData(:,i) = gStretch;
 end
-expDataZ = zscore(expData);
+
+%-------------------------------------------------------------------------------
+% Now we zoom in
+doZoom = false;
+if doZoom
+    extentRange = [extentSim/2-extentZoom/2,extentSim/2+extentZoom/2];
+    isInRange = @(x) x>=extentRange(1) & x<=extentRange(2);
+    keepMe = isInRange(coOrds(:,1)) & isInRange(coOrds(:,2));
+    expDataZoom = expData(keepMe,:);
+    coOrdsZoom = coOrds(keepMe,:);
+    XKeep = isInRange(X(1,:));
+    YKeep = isInRange(Y(:,1));
+    XZoomed = X(YKeep,XKeep);
+    YZoomed = Y(YKeep,XKeep);
+else
+    expDataZoom = expData;
+    coOrdsZoom = coOrds;
+    XZoomed = X;
+    YZoomed = Y;
+end
 
 % Compute pairwise similarity of gradients:
-cgeVect = 1 - pdist(expDataZ,'corr');
+expDataZ = zscore(expDataZoom);
+cgeVect = 1 - pdist(expData,'corr');
+
+% Compute pairwise distance matrix:
+dVectZoom = pdist(dScale*coOrdsZoom,'Euclidean');
+dMatZoom = squareform(dVectZoom);
 
 %-------------------------------------------------------------------------------
 % Plot some individual gradients:
@@ -67,30 +100,30 @@ for i = 1:12
     subplot(3,4,i)
     f.Position = [1000        1012        1000         326];
     % Plot as a grid:
-    imagesc(reshape(expDataZ(:,i),size(X)))
+    imagesc(reshape(expData(:,i),size(XZoomed)))
     axis('square')
 end
-
+colormap(gray)
 
 %-------------------------------------------------------------------------------
 % Plot against each other:
 f = figure('color','w');
 f.Position = [1000        1012        1000         326];
-numBins = 25;
-plot(dVect,cgeVect,'.k')
+numBins = 50;
+plot(dVectZoom,cgeVect,'.k')
 hold('on')
-[xBinCenters,xThresholds,yMeans,yMedians] = BF_PlotQuantiles(dVect(:),cgeVect(:),numBins);
+[xBinCenters,xThresholds,yMeans,yMedians] = BF_PlotQuantiles(dVectZoom(:),cgeVect(:),numBins);
 xlabel('Distance (m)')
 ylabel('CGE')
 title(sprintf('%u superimposed %s gradients',numGradients,whatGradients))
 
 % FIT EXPONENTIAL:
-s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[rho,d0,0]);
-f = fittype('A*exp(-x/n) + B','options',s);
-% xData = xBinCenters; yData = yMeans';
-xData = dVect(:); yData = cgeVect(:);
+s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[0.3,1/5,0]);
+f = fittype('A*exp(-x*n) + B','options',s);
+xData = xBinCenters; yData = yMeans';
+% xData = dVectZoom; yData = cgeVect;
 [c, Stats] = fit(xData,yData,f);
-f_handle = @(x) c.A.*exp(-x/c.n) + c.B;
+f_handle = @(x) c.A.*exp(-x*c.n) + c.B;
 
 % [f_handle,Stats,c] = GiveMeFit(xBinCenters,yMeans,'exp',false);
 
