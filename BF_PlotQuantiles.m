@@ -7,10 +7,10 @@ if nargin < 3 || isempty(numThresholds)
     numThresholds = 10;
 end
 if nargin < 4
-    alsoScatter = 0;
+    alsoScatter = false;
 end
 if nargin < 5
-    makeNewFigure = 0;
+    makeNewFigure = false;
 end
 
 %-------------------------------------------------------------------------------
@@ -33,8 +33,9 @@ yStds = arrayfun(@(x)std(yData(xData>=xThresholds(x) & xData < xThresholds(x+1))
 % ------------------------------------------------------------------------------
 % Plot:
 if makeNewFigure
-    f = figure('color','w'); box('off'); hold on
+    f = figure('color','w'); box('off');
 end
+hold('on');
 theColor = [.59 .87 .82];
 theStyle = '-';
 theLineWidth = 1;
@@ -47,8 +48,7 @@ xBinCenters = zeros(numThresholds-1,1);
 for k = 1:numThresholds-1
     plot(xThresholds(k:k+1),ones(2,1)*yMeans(k),'LineStyle',theStyle,'LineWidth',theLineWidth,'Color', [0 0 0]);
     xBinCenters(k) = mean(xThresholds(k:k+1));
-    plot(xBinCenters(k),yMeans(k),'o','MarkerSize',7,'LineStyle',theStyle,'LineWidth',theLineWidth,'MarkerFaceColor', [0 0 1], 'MarkerEdgeColor', [0 0 0]); %z'Color',theColor)
-    hold on;
+    plot(xBinCenters(k),yMeans(k),'o','MarkerSize',7,'LineStyle',theStyle,'LineWidth',theLineWidth,'MarkerFaceColor', [0 0 1], 'MarkerEdgeColor', [0 0 0]);
 end
 
 end

@@ -1,10 +1,10 @@
 % Make a grid in 2d space
 whatGradients = 'spatialLag'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale', 'ExpDecaySingle'
-numGradients = 1000;
+numGradients = 100;
 
 % Make 2-d spatial grid in [X,Y]:
-extentSim = 30;
-resolution = 20;
+extentSim = 50;
+resolution = 100;
 [coOrds,X,Y] = MakeGrid(extentSim,resolution);
 xRange = [min(X(:)),max(X(:))];
 yRange = [min(Y(:)),max(Y(:))];
@@ -23,20 +23,17 @@ dMat = squareform(dVect);
 
 %-------------------------------------------------------------------------------
 % Visualize points at each distance bin:
-numBins = 20;
+numBins = 25;
 dMatUpper = dMat;
 dMatUpper(tril(true(size(dMat)))) = 0;
 xThresholds = arrayfun(@(x)quantile(dMatUpper(dMatUpper>0),x),linspace(0,1,numBins+1));
 xThresholds(end) = xThresholds(end) + eps; % make sure all data included in final bin
-f = figure('color','w');
+propRegionsRepresented = zeros(numBins,1);
 for i = 1:numBins
-    subplot(5,4,i)
-    axis('square')
-    % Bin i:
+    % Get points in bin index i:
     [isInBin_i,isInBin_j] = find(dMatUpper>xThresholds(i) & dMatUpper<=xThresholds(i+1));
     regionIsRepresented = union(isInBin_i,isInBin_j);
-    % Plot in coordinate space:
-    plot(coOrds(regionIsRepresented,1),coOrds(regionIsRepresented,2),'.r')
+    propRegionsRepresented(i) = length(regionIsRepresented)/numAreas;
 end
 
 %-------------------------------------------------------------------------------
@@ -62,12 +59,12 @@ dMatZoom = squareform(dVectZoom);
 %-------------------------------------------------------------------------------
 % Compute pairwise similarity of gradients as CGE:
 % Normalize each gradient:
-normalizeHow = 'subtractMean'; % 'zscore','mixedSigmoid','subtractMean'
-% expDataNorm = BF_NormalizeMatrix(expDataZoom,normalizeHow);
-expDataNorm = expDataZoom;
-for i = 1:size(expDataZoom,2)
-    expDataNorm(:,i) = expDataNorm(:,i)+randn(1);
-end
+normalizeHow = 'zscore'; % 'zscore','mixedSigmoid','subtractMean'
+expDataNorm = BF_NormalizeMatrix(expDataZoom,normalizeHow);
+% expDataNorm = expDataZoom;
+% for i = 1:size(expDataZoom,2)
+%     expDataNorm(:,i) = expDataNorm(:,i)+randn(1);
+% end
 
 cgeVectNorm = 1 - pdist(expDataNorm,'corr');
 cgeVect = 1 - pdist(expDataZoom,'corr');
@@ -86,16 +83,16 @@ colormap(gray)
 
 %-------------------------------------------------------------------------------
 % Plot:
-numBins = 20;
 includeScatter = false;
 
 % Unnormalized data:
-[c10,cFree] = PlotWithFit(dVectZoom,cgeVect,numBins,includeScatter)
+[binCenters,c10,cFree] = PlotWithFit(dVectZoom,cgeVect,numBins,includeScatter,propRegionsRepresented)
 title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,1/cFree.n))
 
 % Normalized data:
-[c10,cFree] = PlotWithFit(dVectZoom,cgeVectNorm,numBins,includeScatter)
+[binCenters,c10,cFree] = PlotWithFit(dVectZoom,cgeVectNorm,numBins,includeScatter,propRegionsRepresented)
 title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,1/cFree.n))
+% bar(binCenters,propRegionsRepresented)
 
 % Together:
 f = figure('color','w'); hold('on')
