@@ -28,14 +28,14 @@ case 'decayEta'
     f_handle = @(x) c.A.*x.^(-c.n) + c.B;
 
 case 'exp'
-    s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[0.8,1,0]);
-    f = fittype('A*exp(-x/n) + B','options',s);
+    s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[1,0.2,0]);
+    f = fittype('A*exp(-x*n) + B','options',s);
     try
         [c, Stats] = fit(xData,yData,f);
     catch
         error('Fit to exp failed')
     end
-    f_handle = @(x) c.A.*exp(-x/c.n) + c.B;
+    f_handle = @(x,c) c.A.*exp(-x*c.n) + c.B;
 
 case 'exp0'
     s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[1,1]);

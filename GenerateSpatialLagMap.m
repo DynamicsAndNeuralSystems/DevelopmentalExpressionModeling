@@ -19,6 +19,6 @@ u = randn(numPoints,1);
 % keyboard
 % x = (identity - rho * W)\u;
 % x = inv(identity - rho * W)*u;
-x = rho * W * u;
+x = (identity + rho * W) * u;
 
 end

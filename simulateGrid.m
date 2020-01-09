@@ -1,6 +1,6 @@
 % Make a grid in 2d space
-whatGradients = 'ExpDecaySingle'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale'
-numGradients = 200;
+whatGradients = 'spatialLag'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale', 'ExpDecaySingle'
+numGradients = 1000;
 
 % Make 2-d spatial grid in [X,Y]:
 extentSim = 30;
@@ -24,8 +24,8 @@ expData = zeros(numAreas,numGradients);
 for i = 1:numGradients
     switch whatGradients
     case 'spatialLag'
-        d0 = 2; %(max(coOrds(:,1))-min(coOrds(:,1)));
-        rho = 0.5;
+        d0 = 5; %(max(coOrds(:,1))-min(coOrds(:,1)));
+        rho = 0.25;
         g = GenerateSpatialLagMap(dMat,d0,rho);
     case 'linear'
         X0 = rand*(xRange(2)-xRange(1))+xRange(1);
@@ -118,12 +118,26 @@ ylabel('CGE')
 title(sprintf('%u superimposed %s gradients',numGradients,whatGradients))
 
 % FIT EXPONENTIAL:
-s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[0.3,1/5,0]);
+% A--exp10
+s = fitoptions('Method','NonlinearLeastSquares','StartPoint',1/5);
+f = fittype('exp(-x*n)','options',s);
+xData = xBinCenters; yData = yMeans';
+% xData = dVectZoom; yData = cgeVect;
+c10 = fit(xData,yData,f);
+f_handle_exp10 = @(x) exp(-x*c10.n);
+
+% B--expFree
+s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[1,1/5,0]);
 f = fittype('A*exp(-x*n) + B','options',s);
 xData = xBinCenters; yData = yMeans';
 % xData = dVectZoom; yData = cgeVect;
-[c, Stats] = fit(xData,yData,f);
-f_handle = @(x) c.A.*exp(-x*c.n) + c.B;
+cFree = fit(xData,yData,f);
+f_handle_expFree = @(x) cFree.A*exp(-x*cFree.n) + cFree.B;
+
+hold('on')
+plot(xData,f_handle_exp10(xData),'-r','LineWidth',3)
+plot(xData,f_handle_expFree(xData),'-g','LineWidth',3)
+title(sprintf('%u superimposed gradients: n = %g',numGradients,1/c.n))
 
 % [f_handle,Stats,c] = GiveMeFit(xBinCenters,yMeans,'exp',false);
 
@@ -140,12 +154,38 @@ f_handle = @(x) c.A.*exp(-x*c.n) + c.B;
 
 %-------------------------------------------------------------------------------
 % Now stretch it out uniformly:
-numThresholds = 10;
+scalingFactor = [1,1.5,2,2.5,3];
+numThresholds = 20; % for histogram/fitting
+
+% Fitting:
+paramStruct = cell(length(scalingFactor),1);
+for i = 1:length(scalingFactor)
+    [xBinCenters,xThresholds,yMeans,yMedians] = makeQuantiles(scalingFactor(i)*dVectZoom(:),cgeVect(:),numThresholds);
+    xData = xBinCenters'; yData = yMeans';
+    [Exp_3free_fun,Stats,paramStruct{i}] = GiveMeFit(xData,yData,'exp',true);
+end
+
+% Plotting:
 f = figure('color','w');
-hold('on');
-scalingFactor = [1,1.2,1.5,2,3];
 colors = BF_getcmap('spectral',5,1);
+hold('on');
 for i = 1:length(scalingFactor)
     [xBinCenters,xThresholds,yMeans,yMedians] = makeQuantiles(scalingFactor(i)*dVect,cgeVect,numThresholds);
-    plot(xBinCenters,yMeans,'o-','color',colors{i})
+    plot(xBinCenters,yMeans,'o','color',colors{i})
+    plot(xBinCenters,Exp_3free_fun(xBinCenters,paramStruct{i}),'-','color',colors{i},'LineWidth',2)
 end
+
+% Plot parametric variation:
+f = figure('color','w');
+subplot(3,1,1);
+lambdaEst = arrayfun(@(x)1/paramStruct{x}.n,1:length(paramStruct))
+plot(scalingFactor,lambdaEst,'o-k')
+title('Spatial scale')
+subplot(3,1,2);
+strengthEst = arrayfun(@(x)paramStruct{x}.A,1:length(paramStruct))
+plot(scalingFactor,strengthEst,'o-k')
+title('Strength')
+subplot(3,1,3);
+offSetEst = arrayfun(@(x)paramStruct{x}.B,1:length(paramStruct))
+plot(scalingFactor,offSetEst,'o-k')
+title('Offset')

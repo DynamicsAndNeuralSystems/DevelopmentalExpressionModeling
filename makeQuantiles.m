@@ -21,7 +21,7 @@ xThresholds(end) = xThresholds(end) + eps; % make sure all data included in fina
 yMeans = arrayfun(@(x)mean(yData(xData>=xThresholds(x) & xData < xThresholds(x+1))),1:numThresholds-1);
 yMedians = arrayfun(@(x)median(yData(xData>=xThresholds(x) & xData < xThresholds(x+1))),1:numThresholds-1);
 yStds = arrayfun(@(x)std(yData(xData>=xThresholds(x) & xData < xThresholds(x+1))),1:numThresholds-1);
-keyboard
+
 xBinCenters = mean([xThresholds(1:end-1);xThresholds(2:end)]);
 
 end
