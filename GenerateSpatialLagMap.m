@@ -13,8 +13,9 @@ W = exp(-distMat / d0);
 identity = logical(eye(numPoints));
 W(identity) = 0;
 
-% Random numbers:
+% (forced-)Gaussian-distributed random numbers:
 u = randn(numPoints,1);
+% u = zscore(randn(numPoints,1));
 
 % keyboard
 % x = (identity - rho * W)\u;
