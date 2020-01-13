@@ -4,7 +4,7 @@ numGradients = 100;
 
 % Make 2-d spatial grid in [X,Y]:
 extentSim = 50;
-resolution = 100;
+resolution = 60;
 [coOrds,X,Y] = MakeGrid(extentSim,resolution);
 xRange = [min(X(:)),max(X(:))];
 yRange = [min(Y(:)),max(Y(:))];

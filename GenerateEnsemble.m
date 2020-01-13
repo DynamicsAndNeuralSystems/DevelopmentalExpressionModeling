@@ -5,7 +5,7 @@ for i = 1:numGradients
     switch whatGradients
     case 'spatialLag'
         d0 = 1; %(max(coOrds(:,1))-min(coOrds(:,1)));
-        rho = 0.25;
+        rho = 1.5;
         g = GenerateSpatialLagMap(dMat,d0,rho);
     case 'linear'
         X0 = rand*(xRange(2)-xRange(1))+xRange(1);
