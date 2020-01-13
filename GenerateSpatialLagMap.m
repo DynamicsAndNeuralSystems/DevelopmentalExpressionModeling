@@ -13,11 +13,12 @@ W = exp(-distMat / d0);
 identity = logical(eye(numPoints));
 W(identity) = 0;
 
-% (forced-)Gaussian-distributed random numbers:
+% Gaussian-distributed random numbers:
 u = randn(numPoints,1);
-% u = zscore(randn(numPoints,1));
 
-% keyboard
+% Force Gaussian-distribution?:
+% u = zscore(u);
+
 % x = (identity - rho * W)\u;
 % x = inv(identity - rho * W)*u;
 x = (identity + rho * W) * u;

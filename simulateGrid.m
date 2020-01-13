@@ -1,40 +1,34 @@
-% Make a grid in 2d space
+%-------------------------------------------------------------------------------
+% Parameters:
+%-------------------------------------------------------------------------------
+% Parameters of the 2D spatial coordinate grid:
+extentSim = 50; % physical extent of the
+resolution = 40; % number of points to split each dimension into
+dScale = 1; % distance (m) corresponding to a unit change in each axis
+
+% Details of the expression maps to generate (what parameters of what model):
 whatGradients = 'spatialLag'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale', 'ExpDecaySingle'
 numGradients = 100;
 
-% Make 2-d spatial grid in [X,Y]:
-extentSim = 50;
-resolution = 60;
-[coOrds,X,Y] = MakeGrid(extentSim,resolution);
-xRange = [min(X(:)),max(X(:))];
-yRange = [min(Y(:)),max(Y(:))];
-numAreas = length(coOrds);
+% Spatial binning for plotting and analysis:
+numBins = 25;
 
 % Zoom in for analysis:
 doZoom = false;
 extentZoom = 10;
 
-% Distance (m) corresponding to a unit change in each axis
-dScale = 1;
+%-------------------------------------------------------------------------------
+% Generate the 2-d spatial grid in [X,Y] (on which to work):
+[coOrds,X,Y] = MakeGrid(extentSim,resolution);
+numAreas = length(coOrds);
 
-% Compute pairwise distance matrix:
+% Compute the pairwise distance matrix in the coordinate space:
 dVect = pdist(dScale*coOrds,'Euclidean');
 dMat = squareform(dVect);
 
 %-------------------------------------------------------------------------------
-% Visualize points at each distance bin:
-numBins = 25;
-dMatUpper = dMat;
-dMatUpper(tril(true(size(dMat)))) = 0;
-xThresholds = arrayfun(@(x)quantile(dMatUpper(dMatUpper>0),x),linspace(0,1,numBins+1));
-xThresholds(end) = xThresholds(end) + eps; % make sure all data included in final bin
-propRegionsRepresented = zeros(numBins,1);
-for i = 1:numBins
-    % Get points in bin index i:
-    [isInBin_i,isInBin_j] = find(dMatUpper>xThresholds(i) & dMatUpper<=xThresholds(i+1));
-    regionIsRepresented = union(isInBin_i,isInBin_j);
-    propRegionsRepresented(i) = length(regionIsRepresented)/numAreas;
-end
+% Understand the spatial sampling of points across distance bins:
+propRegionsRepresented = AnalyseSpatialSampling(dVect,numAreas,numBins);
 
 %-------------------------------------------------------------------------------
 % Generate a bunch of spatial gene-expression gradients:
@@ -70,24 +64,16 @@ cgeVectNorm = 1 - pdist(expDataNorm,'corr');
 cgeVect = 1 - pdist(expDataZoom,'corr');
 
 %-------------------------------------------------------------------------------
-% Plot some individual gradients:
-f = figure('color','w');
-for i = 1:12
-    subplot(3,4,i)
-    f.Position = [1000        1012        1000         326];
-    % Plot as a grid:
-    imagesc(reshape(expDataZoom(:,i),size(XZoomed)))
-    axis('square')
-end
-colormap(gray)
+% Plot some individual gradients as color in 2d:
+PlotSomeIndividualGradients(expDataZoom,size(XZoomed));
 
 %-------------------------------------------------------------------------------
 % Plot:
 includeScatter = false;
 
 % Unnormalized data:
-[binCenters,c10,cFree] = PlotWithFit(dVectZoom,cgeVect,numBins,includeScatter,propRegionsRepresented)
-title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,1/cFree.n))
+% [binCenters,c10,cFree] = PlotWithFit(dVectZoom,cgeVect,numBins,includeScatter,propRegionsRepresented)
+% title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,1/cFree.n))
 
 % Normalized data:
 [binCenters,c10,cFree] = PlotWithFit(dVectZoom,cgeVectNorm,numBins,includeScatter,propRegionsRepresented)
@@ -95,9 +81,9 @@ title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,
 % bar(binCenters,propRegionsRepresented)
 
 % Together:
-f = figure('color','w'); hold('on')
-BF_PlotQuantiles(dVectZoom,cgeVect,numBins);
-BF_PlotQuantiles(dVectZoom,cgeVectNorm,numBins);
+% f = figure('color','w'); hold('on')
+% BF_PlotQuantiles(dVectZoom,cgeVect,numBins);
+% BF_PlotQuantiles(dVectZoom,cgeVectNorm,numBins);
 %-------------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------------

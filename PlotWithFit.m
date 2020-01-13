@@ -1,4 +1,6 @@
 function [xBinCenters,c10,cFree] = PlotWithFit(xData,yData,numBins,includeScatter,sizeIndicator)
+% Plot x-y data across a set of equiprobable bins (and fitted exponential)
+%-------------------------------------------------------------------------------
 
 f = figure('color','w');
 hold('on')
