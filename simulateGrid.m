@@ -28,7 +28,7 @@ dMat = squareform(dVect);
 
 %-------------------------------------------------------------------------------
 % Understand the spatial sampling of points across distance bins:
-propRegionsRepresented = AnalyseSpatialSampling(dVect,numAreas,numBins);
+propRegionsRepresented = AnalyseSpatialSampling(dMat,numAreas,numBins);
 
 %-------------------------------------------------------------------------------
 % Generate a bunch of spatial gene-expression gradients:
@@ -89,14 +89,12 @@ title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,
 %-------------------------------------------------------------------------------
 % Now stretch it out uniformly:
 scalingFactor = [1,1.5,2,2.5,3];
-numThresholds = 20; % for histogram/fitting
 
 % Fitting:
 paramStruct = cell(length(scalingFactor),1);
 for i = 1:length(scalingFactor)
-    [xBinCenters,xThresholds,yMeans,yMedians] = makeQuantiles(scalingFactor(i)*dVectZoom(:),cgeVect(:),numThresholds);
-    xData = xBinCenters'; yData = yMeans';
-    [Exp_3free_fun,Stats,paramStruct{i}] = GiveMeFit(xData,yData,'exp',true);
+    [xBinCenters,xThresholds,yMeans,yMedians] = makeQuantiles(scalingFactor(i)*dVectZoom(:),cgeVect(:),numBins+1);
+    [Exp_3free_fun,Stats,paramStruct{i}] = GiveMeFit(xBinCenters',yMeans','exp',true);
 end
 
 % Plotting:
@@ -104,7 +102,7 @@ f = figure('color','w');
 colors = BF_getcmap('spectral',5,1);
 hold('on');
 for i = 1:length(scalingFactor)
-    [xBinCenters,xThresholds,yMeans,yMedians] = makeQuantiles(scalingFactor(i)*dVect,cgeVect,numThresholds);
+    [xBinCenters,xThresholds,yMeans,yMedians] = makeQuantiles(scalingFactor(i)*dVect,cgeVect,numBins+1);
     plot(xBinCenters,yMeans,'o','color',colors{i})
     plot(xBinCenters,Exp_3free_fun(xBinCenters,paramStruct{i}),'-','color',colors{i},'LineWidth',2)
 end

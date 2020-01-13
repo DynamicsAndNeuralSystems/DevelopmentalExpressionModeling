@@ -11,7 +11,12 @@ end
 
 %-------------------------------------------------------------------------------
 % Filter out NaNs:
-goodBoth = (~isnan(xData) & ~isnan(yData));
+if ~isempty(yData)
+    goodBoth = (~isnan(xData) & ~isnan(yData));
+else
+    goodBoth = ~isnan(xData);
+end
+
 if ~any(goodBoth)
     error('No good data');
 elseif any(~goodBoth)

@@ -26,6 +26,7 @@ f.Position = [1000        1012        1000         326];
 % Exponential Fits:
 %-------------------------------------------------------------------------------
 xDataFitFull = xBinCenters'; yDataFitFull = yMeans';
+
 % subset
 includeMe = (sizeIndicator==1);
 xDataFit = xDataFitFull(includeMe);
