@@ -1,9 +1,14 @@
-function [xBinCenters,c10,cFree] = PlotWithFit(xData,yData,numBins,includeScatter,sizeIndicator)
+function [xBinCenters,c10,cFree] = PlotWithFit(xData,yData,numBins,includeScatter,sizeIndicator,newFig)
 % Plot x-y data across a set of equiprobable bins (and fitted exponential)
 %-------------------------------------------------------------------------------
+if nargin < 6
+    newFig = false;
+end
 
-f = figure('color','w');
-hold('on')
+if newFig
+    f = figure('color','w');
+    hold('on')
+end
 
 %-------------------------------------------------------------------------------
 % BINNING:

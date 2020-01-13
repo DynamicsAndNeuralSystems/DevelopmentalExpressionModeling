@@ -1,4 +1,4 @@
-function expData = GenerateEnsemble(whatGradients,numAreas,numGradients,dMat)
+function expData = GenerateEnsemble(whatGradients,numAreas,numGradients,dMat,ensembleParams)
 % Generates an ensemble of spatial maps, as the matrix expData.
 %-------------------------------------------------------------------------------
 
@@ -6,8 +6,10 @@ expData = zeros(numAreas,numGradients);
 for i = 1:numGradients
     switch whatGradients
     case 'spatialLag'
-        d0 = 1; %(max(coOrds(:,1))-min(coOrds(:,1)));
-        rho = 1.5;
+        d0 = ensembleParams.d0;
+        rho = ensembleParams.rho;
+        % d0 = 1; %(max(coOrds(:,1))-min(coOrds(:,1)));
+        % rho = 1.5;
         g = GenerateSpatialLagMap(dMat,d0,rho);
     case 'linear'
         X0 = rand*(xRange(2)-xRange(1))+xRange(1);
