@@ -1,53 +1,66 @@
+function [maxExtent,lambdaEst,strengthEst,offSetEst] = simulateGrid(doPlot)
+if nargin < 1
+    doPlot = false;
+end
+
 %-------------------------------------------------------------------------------
 % Parameters:
 %-------------------------------------------------------------------------------
 % Parameters of the 2D spatial coordinate grid:
-extentSim = 1/sqrt(2); % physical extent of the grid (square: linear dimension)
-resolution = 12; % number of points to split each dimension into
+resolution = 20; % number of points to split each dimension into
 numDims = 3;
+extentSim = 1/sqrt(numDims); % physical extent of the grid (square: linear dimension)
 
 % Details of the expression maps to generate (what parameters of what model):
-numGradients = 250;
+numGradients = 100;
 whatGradients = 'spatialLag'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale', 'ExpDecaySingle'
 ensembleParams = struct();
 ensembleParams.rho = 1; % relative strength of spatial autocorrelation (relative to noise)
-ensembleParams.d0 = 1; % spatial scale
+ensembleParams.d0 = []; % spatial scale
 % Normalization of each gradient:
 normalizeHow = 'scaledSigmoid'; % 'zscore','mixedSigmoid','subtractMean'
 
 % Spatial binning for plotting and analysis:
+subsampleSpace = 500; % only keep this many random points for spatial analysis
 numBins = 25;
 includeScatter = false;
 
 % Time Variation:
 % --A combination of isotropic spatial scaling, and 'zooming out'--
 % spatialScalingFactor = [1,1.5,2,2.5,3]; % in absolute units relative to *original* grid (undistorted by scaling).
-spatialScalingFactors = [3.52,5.7,6.6,7.84,10.56,12.8,13.6];
+% spatialScalingFactors = [3.52,5.7,6.6,7.84,10.56,12.8,13.6];
 % spatialScalingFactor = [1,1,1,1,1];
 % For genes that scale--fraction of average distance
-d0scalingFactor = 10;
+d0scalingFactor = 6;
 % This proportion of genes obey the d0 scaling factor, other genes stay put.
 propGenesThatScale = 1;
-assert(length(d0ScalingFactors)==length(spatialScalingFactors));
-numTimePoints = length(spatialScalingFactors);
+% assert(length(d0ScalingFactors)==length(spatialScalingFactors));
+numTimePoints = 7; %length(spatialScalingFactors);
 timeVector = 1:numTimePoints;
 
 %-------------------------------------------------------------------------------
 % Now we go through 'time':
-f = figure('color','w');
-colors = BF_getcmap('spectral',numTimePoints,1);
-hold('on')
+if doPlot
+    f = figure('color','w');
+    colors = BF_getcmap('spectral',numTimePoints,1);
+    hold('on')
+end
 paramStruct = cell(numTimePoints,1);
+maxExtent = zeros(numTimePoints,1);
 for t = timeVector
     % Scale the original map by this much (isotropic stretch):
-    scalingFactor = spatialScalingFactors(t);
+    % scalingFactor = spatialScalingFactors(t);
     % Zoom out from the original map (with the same rules) by this much:
-    d0 = d0Values(t);
+    % d0 = d0Values(t);
 
     %-------------------------------------------------------------------------------
     % Generate the 2-d spatial grid in [X,Y] (on which to work):
     customExtent = GiveMeGridExtent(t);
-    [coOrds,X,Y,Z] = MakeGrid(customExtent,resolution,numDims);
+    maxExtent(t) = customExtent(1);
+    if numDims==2
+        customExtent = customExtent(1:2);
+    end
+    [coOrds,X,Y,Z] = MakeGrid(customExtent,resolution,numDims,subsampleSpace);
     % [coOrds,X,Y,Z] = MakeGrid(extentSim*scalingFactor,resolution,numDims);
     numAreas = length(coOrds);
     % Compute the pairwise distance matrix in the coordinate space:
@@ -83,10 +96,10 @@ for t = timeVector
 
     %-------------------------------------------------------------------------------
     % Plot some individual gradients as color in 2d:
-    if t==1 & numDims==2
+    if t==1 & numDims==2 & isempty(subsampleSpace)
         f_tmp = figure('color','w');
         set(0, 'currentfigure', f_tmp);  % for figures
-        PlotSomeIndividualGradients(expData,coOrds,size(X),false);
+        PlotSomeIndividualGradients(expData,coOrds,size(X),true);
         drawnow()
         set(0, 'currentfigure', f);  % for figures
     end
@@ -126,10 +139,12 @@ for t = timeVector
     % title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,1/cFree.n))
 
     % Normalized data:
-    subplot(numTimePoints,1,t);
-    hold('on')
-    [binCenters,c10,cFree] = PlotWithFit(dVect,cgeVectNorm,numBins,includeScatter,propRegionsRepresented,false);
-    title(sprintf('d0 %f, scale %f',d0ScalingFactor,scalingFactor));
+    if doPlot
+        subplot(numTimePoints,1,t);
+        hold('on')
+        [binCenters,c10,cFree] = PlotWithFit(dVect,cgeVectNorm,numBins,includeScatter,propRegionsRepresented,false);
+        title(sprintf('d0 %f, scale %f',d0ScalingFactor,scalingFactor));
+    end
     % title(sprintf('%u superimposed %s gradients: n = %g',numGradients,whatGradients,1/cFree.n));
     % bar(binCenters,propRegionsRepresented)
 
@@ -152,17 +167,20 @@ end
 
 %-------------------------------------------------------------------------------
 % Plot parametric variation through time:
-f = figure('color','w');
-subplot(3,1,1);
 lambdaEst = arrayfun(@(x)1/paramStruct{x}.n,1:length(paramStruct));
-plot(spatialScalingFactors,lambdaEst,'o-k')
-title('Spatial scale')
-subplot(3,1,2);
 strengthEst = arrayfun(@(x)paramStruct{x}.A,1:length(paramStruct));
-plot(spatialScalingFactors,strengthEst,'o-k')
-title('Strength')
-subplot(3,1,3);
 offSetEst = arrayfun(@(x)paramStruct{x}.B,1:length(paramStruct));
-plot(spatialScalingFactors,offSetEst,'o-k')
-title('Offset')
-xlabel('Max Distance')
+if doPlot
+    f = figure('color','w');
+    subplot(3,1,1);
+    plot(maxExtent,lambdaEst,'o-k')
+    title('Spatial scale')
+    subplot(3,1,2);
+    plot(maxExtent,strengthEst,'o-k')
+    title('Strength')
+    subplot(3,1,3);
+    plot(maxExtent,offSetEst,'o-k')
+    title('Offset')
+    xlabel('Max Distance')
+end
+end

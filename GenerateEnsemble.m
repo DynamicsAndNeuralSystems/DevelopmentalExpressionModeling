@@ -39,11 +39,16 @@ for i = 1:numGradients
         sigma2Y = (yRange(2)-yRange(1))*scaleProp;
         g = A*exp(-(((X-X0)/sigma2X).^2 + ((Y-Y0)/sigma2Y).^2));
     case 'ExpDecaySingle'
-        d0 = rand*20;
-        X0 = rand*(xRange(2)-xRange(1))+xRange(1);
-        Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
-        D = (X-X0).^2 + (Y-Y0).^2;
-        g = exp(-D/d0) + 0.2*randn(size(D));
+        % d0 = rand*20;
+        d0 = ensembleParams.d0;
+        rho = ensembleParams.rho;
+        % Pick a point as source:
+        pointID = randi(length(dMat),1);
+        % X0 = rand*(xRange(2)-xRange(1))+xRange(1);
+        % Y0 = rand*(yRange(2)-yRange(1))+yRange(1);
+        % D = (X-X0).^2 + (Y-Y0).^2;
+        distToPoint = dMat(pointID,:);
+        g = rho*exp(-distToPoint/d0) + randn(size(distToPoint));
     end
     gStretch = g(:);
     expData(:,i) = gStretch;
