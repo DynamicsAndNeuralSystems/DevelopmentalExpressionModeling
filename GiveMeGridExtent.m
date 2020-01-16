@@ -1,7 +1,7 @@
 function extent = GiveMeGridExtent(timePoint)
 % Can get it from the main repository as:
-coOrds = getCoOrds('wholeBrain','P28');
-max(coOrds)-min(coOrds);
+% coOrds = getCoOrds('wholeBrain','P28');
+% max(coOrds)-min(coOrds);
 
 switch timePoint
 case 1

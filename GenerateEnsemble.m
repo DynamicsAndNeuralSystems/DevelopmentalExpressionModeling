@@ -1,7 +1,8 @@
-function expData = GenerateEnsemble(whatGradients,numAreas,numGradients,dMat,ensembleParams)
+function expData = GenerateEnsemble(whatGradients,dMat,numGradients,ensembleParams)
 % Generates an ensemble of spatial maps, as the matrix expData.
 %-------------------------------------------------------------------------------
 
+numAreas = size(dMat,1);
 expData = zeros(numAreas,numGradients);
 for i = 1:numGradients
     switch whatGradients
