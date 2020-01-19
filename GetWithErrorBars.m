@@ -1,4 +1,4 @@
-numRepeats = 4;
+numRepeats = 10;
 
 params = GiveMeDefaultParams();
 
@@ -35,7 +35,6 @@ end
 
 
 %-------------------------------------------------------------------------------
-
 f = figure('color','w');
 myColors = BF_getcmap('dark2',7,1);
 for i = 1:3
@@ -60,10 +59,6 @@ for i = 1:3
         ft = fittype('c*x');
         [c,Stats] = fit(maxExtent,mean(paramEst)',ft);
         f_handle = @(x) c.c*x;
-    else
-        [c,Stats] = fit(maxExtent,mean(paramEst)','poly1');
-        Gradient = c.p1; Intercept = c.p2;
-        f_handle = @(x) Gradient*x + Intercept;
     end
     xRange = linspace(0,maxExtent(end));
     plot(xRange,f_handle(xRange),':k')
@@ -71,6 +66,15 @@ for i = 1:3
     % Plot (colored) parameter variation
     for t = 1:numTimePoints
         errorbar(maxExtent(t),mean(paramEst(:,t)),mean(paramErr(:,t)),'o','color',myColors{t},'LineWidth',1.8)
+        % if i==1 | i==2
+        % Add empirical data:
+        load('parameterFits.mat','paramMeanValues','paramErrValues');
+        empirical = paramMeanValues(i,:)';
+        empiricalErrs = paramErrValues(i,:)';
+        smallOffset = 0.4;
+        errorbar(maxExtent(t)+smallOffset,empirical(t),empiricalErrs(t),'o',...
+                            'color',brighten(myColors{t},0.5),'LineWidth',1.8)
+        % end
     end
 
     xlabel('Brain size, dmax (mm)')

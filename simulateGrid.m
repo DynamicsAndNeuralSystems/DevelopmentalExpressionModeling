@@ -115,8 +115,8 @@ for t = timeVector
         subplot(numTimePoints,1,t);
         hold('on')
         [binCenters,c10,cFree] = PlotWithFit(dVect,cgeVectNorm,params.numBins,params.includeScatter,...
-                                            params.propRegionsRepresented,false);
-        title(sprintf('d0 %f',params.d0ScalingFactor));
+                                                        propRegionsRepresented,false);
+        title(sprintf('d0 %f',params.d0scalingFactor));
     end
     % title(sprintf('%u superimposed %s gradients: n = %g',numGradients,params.whatGradients,1/cFree.n));
     % bar(binCenters,propRegionsRepresented)
@@ -157,4 +157,5 @@ if doPlot
     title('Offset')
     xlabel('Max Distance')
 end
+
 end
