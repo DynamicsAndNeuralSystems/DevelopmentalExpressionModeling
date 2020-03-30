@@ -1,7 +1,7 @@
 % Try to optimize rho, d0scale
 
-d0Scaling_0 = 3.84;
-rho_0 = 0.21;
+d0Scaling_0 = 7.51; % d0Scaling_0 = 3.84;
+rho_0 = 0.13; % rho_0 = 0.21;
 X0 = [d0Scaling_0,rho_0];
 
 fprintf(1,'Down-hill search\n');

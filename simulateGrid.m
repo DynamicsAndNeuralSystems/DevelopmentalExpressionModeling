@@ -4,10 +4,11 @@ if nargin < 1
     params = GiveMeDefaultParams();
 end
 if nargin < 2
-    doPlot = false;
+    doPlot = true;
 end
 %-------------------------------------------------------------------------------
-numTimePoints = 7; %length(spatialScalingFactors);
+% Set up time:
+numTimePoints = 7;
 timeVector = 1:numTimePoints;
 
 %-------------------------------------------------------------------------------
@@ -26,10 +27,11 @@ for t = timeVector
     % d0 = d0Values(t);
 
     %-------------------------------------------------------------------------------
-    % Generate the 2-d spatial grid in [X,Y] (on which to work):
+    % Generate the 2d/3d spatial grid in [X,Y] or [X,Y,Z] to work on:
     customExtent = GiveMeGridExtent(t);
     maxExtent(t) = customExtent(1);
     if params.numDims==2
+        warning('Using two-dimensions only')
         customExtent = customExtent(1:2);
     end
     [coOrds,X,Y,Z] = MakeGrid(customExtent,params.resolution,params.numDims,params.subsampleSpace);
@@ -45,11 +47,11 @@ for t = timeVector
     propRegionsRepresented = AnalyseSpatialSampling(dMat,numAreas,params.numBins);
 
     %-------------------------------------------------------------------------------
-    % Generate a bunch of spatial gene-expression gradients:
+    % Generate an ensemble of spatial gene-expression gradients:
     ensembleParamsT = params.ensembleParams;
-    ensembleParamsT.d0 = mean(dVect)/params.d0scalingFactor;
+    ensembleParamsT.d0 = maxExtent(t)/params.d0scalingFactor;
     if params.propGenesThatScale==1
-        expData = GenerateEnsemble(params.whatGradients,dMat,round(params.numGradients*params.propGenesThatScale),ensembleParamsT);
+        expData = GenerateEnsemble(params.whatGradients,dMat,params.numGradients,ensembleParamsT);
     else
         fprintf(1,'Only %u%% of genes scale with brain size\n',params.propGenesThatScale*100);
         % Some genes keep a fixed scale of spatial autocorrelation:

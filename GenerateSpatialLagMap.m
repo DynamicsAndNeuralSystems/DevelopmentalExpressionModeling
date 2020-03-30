@@ -3,6 +3,7 @@ function x = GenerateSpatialLagMap(distMat,d0,rho)
 if nargin < 3 || isempty(rho)
     rho = 0.8;
 end
+%-------------------------------------------------------------------------------
 
 numPoints = size(distMat,1);
 
