@@ -11,7 +11,7 @@ offSetEst = zeros(numRepeats,numTimePoints);
 offSetErr = zeros(numRepeats,numTimePoints);
 
 for i = 1:numRepeats
-    fprintf(1,'~~~~~~~ITERATION %u~~~~~~~\n',i);
+    fprintf(1,'~~~~~~~ITERATION %u/%u~~~~~~~\n',i,numRepeats);
     [maxExtent,paramStruct] = simulateGrid(params,false);
     paramNames = coeffnames(paramStruct{1});
 
