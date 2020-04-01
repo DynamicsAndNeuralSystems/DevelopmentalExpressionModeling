@@ -1,6 +1,6 @@
 function sumSquareErrors = computeError(d0,rho)
 
-includeF0 = true;
+includeF0 = false;
 
 % Simulate model with specified parameters:
 params = GiveMeDefaultParams();
@@ -19,12 +19,12 @@ strengthEmpirical = paramMeanValues(2,:)';
 f0Empirical = paramMeanValues(3,:)';
 
 if includeF0
-    sumSquareErrors = sum((lambdaEmpirical-lambdaModel).^2) + ...
-                sum((strengthEmpirical-strengthModel).^2) + ...
-                sum((f0Empirical-f0Model).^2);
+    sumSquareErrors = sum(abs((lambdaEmpirical-lambdaModel)./lambdaEmpirical)) + ...
+                sum(abs((strengthEmpirical-strengthModel)./strengthEmpirical)) + ...
+                sum(abs((f0Empirical-f0Model)./f0Empirical));
 else
-    sumSquareErrors = sum((lambdaEmpirical-lambdaModel).^2) + ...
-                sum((strengthEmpirical-strengthModel).^2);
+    sumSquareErrors = sum(abs((lambdaEmpirical-lambdaModel)./lambdaEmpirical)) + ...
+                sum(abs((strengthEmpirical-strengthModel)./strengthEmpirical));
 end
 
 end

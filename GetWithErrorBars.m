@@ -1,4 +1,4 @@
-numRepeats = 10;
+numRepeats = 50;
 
 params = GiveMeDefaultParams();
 
@@ -71,7 +71,7 @@ for i = 1:3
         load('parameterFits.mat','paramMeanValues','paramErrValues');
         empirical = paramMeanValues(i,:)';
         empiricalErrs = paramErrValues(i,:)';
-        smallOffset = 0.4;
+        smallOffset = 0.1;
         errorbar(maxExtent(t)+smallOffset,empirical(t),empiricalErrs(t),'o',...
                             'color',brighten(myColors{t},0.5),'LineWidth',1.8)
         % end

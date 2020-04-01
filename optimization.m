@@ -5,8 +5,8 @@
 % rho_0 = 0.13; % rho_0 = 0.21;
 
 % -------Optimize for lambda, A, and f0:
-d0Scaling_0 = 8.00; % d0Scaling_0 = 3.84;
-rho_0 = 0.12; % rho_0 = 0.21;
+d0Scaling_0 = 8.40; % d0Scaling_0 = 3.84;
+rho_0 = 0.16; % rho_0 = 0.21;
 
 X0 = [d0Scaling_0,rho_0];
 
