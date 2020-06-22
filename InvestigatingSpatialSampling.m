@@ -22,7 +22,6 @@ for i = 1:numBins
     switch anglesOrSpace
     case 'space'
         % Plot points contributing to the distance bin in coordinate space:
-
         plot(coOrds(regionIsRepresented,1),coOrds(regionIsRepresented,2),'.r')
 
     case 'angles'

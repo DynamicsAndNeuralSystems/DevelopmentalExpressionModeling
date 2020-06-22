@@ -1,4 +1,8 @@
-numRepeats = 50;
+function GetWithErrorBars(numRepeats)
+if nargin < 1
+    numRepeats = 50;
+end
+%-------------------------------------------------------------------------------
 
 params = GiveMeDefaultParams();
 
@@ -59,9 +63,9 @@ for i = 1:3
         ft = fittype('c*x');
         [c,Stats] = fit(maxExtent,mean(paramEst)',ft);
         f_handle = @(x) c.c*x;
+        xRange = linspace(0,maxExtent(end));
+        plot(xRange,f_handle(xRange),':k')
     end
-    xRange = linspace(0,maxExtent(end));
-    plot(xRange,f_handle(xRange),':k')
 
     % Plot (colored) parameter variation
     for t = 1:numTimePoints
@@ -80,3 +84,11 @@ for i = 1:3
     xlabel('Brain size, dmax (mm)')
 end
 f.Position = [1000        1116         831         222];
+
+%-------------------------------------------------------------------------------
+% Save to file:
+fileName = sprintf('Model_Simo_%uReps.svg',numRepeats);
+saveas(f,fileName,'svg')
+fprintf(1,'Saved to %s\n',fileName);
+
+end
