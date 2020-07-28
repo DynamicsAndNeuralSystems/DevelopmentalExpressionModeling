@@ -1,4 +1,7 @@
 function GetWithErrorBars(numRepeats)
+% Lots of simulations of autocorrelated spatial maps
+%-------------------------------------------------------------------------------
+
 if nargin < 1
     numRepeats = 50;
 end
@@ -78,25 +81,24 @@ for i = 1:3
     [params,fittedParams,CIs,goodTimePoint] = LoadParameterFits(params);
 
     lambdaEmpirical = cellfun(@(x)1/x.n,fittedParams);
-    lambdaErrs = cellfun(@(x)diff(x(:,3)),CIs);
+    lambdaErrs = cellfun(@(x)diff(x(:,3))/2,CIs);
     strengthEmpirical = cellfun(@(x)x.A,fittedParams);
-    strengthErrs = cellfun(@(x)diff(x(:,1)),CIs);
+    strengthErrs = cellfun(@(x)diff(x(:,1))/2,CIs);
     f0Empirical = cellfun(@(x)x.B,fittedParams);
-    f0Errs = cellfun(@(x)abs(diff(x(:,2))),CIs);
+    f0Errs = cellfun(@(x)abs(diff(x(:,2)))/2,CIs);
     paramMeanValues = [lambdaEmpirical,strengthEmpirical,f0Empirical];
     paramErrValues = [lambdaErrs,strengthErrs,f0Errs];
 
     for t = 1:numTimePoints
-        errorbar(maxExtent(t),mean(paramEst(:,t)),mean(paramErr(:,t)),'o','color',myColors{t},'LineWidth',1.8)
-        % if i==1 | i==2
-        % Add empirical data:
-        % load('parameterFits.mat','paramMeanValues','paramErrValues');
+        % Simulation:
+        errorbar(maxExtent(t),mean(paramEst(:,t)),mean(paramErr(:,t)),'o','color',...
+                                myColors{t},'LineWidth',1.8)
+        % Empirical data:
         empirical = paramMeanValues(:,i);
         empiricalErrs = paramErrValues(:,i);
         smallOffset = 0.1;
         errorbar(maxExtent(t)+smallOffset,empirical(t),empiricalErrs(t),'o',...
                             'color',brighten(myColors{t},+0.5),'LineWidth',1.8)
-        % end
     end
 
     xlabel('Brain size, dmax (mm)')
