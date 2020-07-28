@@ -1,4 +1,6 @@
 function sumSquareErrors = computeError(d0,rho)
+% Get error of model-data fit to scaling of CGE(d) parameters
+%-------------------------------------------------------------------------------
 
 includeF0 = false;
 
@@ -12,11 +14,19 @@ lambdaModel = cellfun(@(x)1/x.n,paramStruct);
 strengthModel = cellfun(@(x)x.A,paramStruct);
 f0Model = cellfun(@(x)x.B,paramStruct);
 
-% Compare to data:
-load('parameterFits.mat','paramMeanValues');
-lambdaEmpirical = paramMeanValues(1,:)';
-strengthEmpirical = paramMeanValues(2,:)';
-f0Empirical = paramMeanValues(3,:)';
+%-------------------------------------------------------------------------------
+% Load results from fitted data:
+%-------------------------------------------------------------------------------
+params = struct();
+params.doSubsample = true;
+params.thisBrainDiv = 'brain';
+params.thisCellType = 'allCellTypes';
+params.includeAdult = false;
+[params,fittedParams,CIs,goodTimePoint] = LoadParameterFits(params);
+
+lambdaEmpirical = cellfun(@(x)1/x.n,fittedParams);
+strengthEmpirical = cellfun(@(x)x.A,fittedParams);
+f0Empirical = cellfun(@(x)x.B,fittedParams);
 
 if includeF0
     sumSquareErrors = sum(abs((lambdaEmpirical-lambdaModel)./lambdaEmpirical)) + ...

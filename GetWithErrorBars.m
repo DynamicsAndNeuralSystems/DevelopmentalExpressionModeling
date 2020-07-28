@@ -67,17 +67,35 @@ for i = 1:3
         plot(xRange,f_handle(xRange),':k')
     end
 
+    %-------------------------------------------------------------------------------
     % Plot (colored) parameter variation
+    params = struct();
+    params.doSubsample = true;
+    params.thisBrainDiv = 'brain';
+    params.thisCellType = 'allCellTypes';
+    params.includeAdult = false;
+
+    [params,fittedParams,CIs,goodTimePoint] = LoadParameterFits(params);
+
+    lambdaEmpirical = cellfun(@(x)1/x.n,fittedParams);
+    lambdaErrs = cellfun(@(x)diff(x(:,3)),CIs);
+    strengthEmpirical = cellfun(@(x)x.A,fittedParams);
+    strengthErrs = cellfun(@(x)diff(x(:,1)),CIs);
+    f0Empirical = cellfun(@(x)x.B,fittedParams);
+    f0Errs = cellfun(@(x)abs(diff(x(:,2))),CIs);
+    paramMeanValues = [lambdaEmpirical,strengthEmpirical,f0Empirical];
+    paramErrValues = [lambdaErrs,strengthErrs,f0Errs];
+
     for t = 1:numTimePoints
         errorbar(maxExtent(t),mean(paramEst(:,t)),mean(paramErr(:,t)),'o','color',myColors{t},'LineWidth',1.8)
         % if i==1 | i==2
         % Add empirical data:
-        load('parameterFits.mat','paramMeanValues','paramErrValues');
-        empirical = paramMeanValues(i,:)';
-        empiricalErrs = paramErrValues(i,:)';
+        % load('parameterFits.mat','paramMeanValues','paramErrValues');
+        empirical = paramMeanValues(:,i);
+        empiricalErrs = paramErrValues(:,i);
         smallOffset = 0.1;
         errorbar(maxExtent(t)+smallOffset,empirical(t),empiricalErrs(t),'o',...
-                            'color',brighten(myColors{t},0.5),'LineWidth',1.8)
+                            'color',brighten(myColors{t},+0.5),'LineWidth',1.8)
         % end
     end
 

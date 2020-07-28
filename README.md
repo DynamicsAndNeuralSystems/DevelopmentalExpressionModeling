@@ -20,9 +20,10 @@ Allows you to visualize some example outputs of the spatial lag model with speci
 #### Optimization
 
 An initial step is to get the model parameters in a good part of the space, using `optimization`.
-The optimized values can then be set in `GiveMeDefaultParameters`.
+The optimized values should then be set in the function `GiveMeDefaultParameters`: `params.ensembleParams.rho` and `params.d0scalingFactor`.
 
 #### Modelling
+
 The modelling across time is done in `simulateGrid`.
 Running this across many iterations is done in `GetWithErrorBars`.
 

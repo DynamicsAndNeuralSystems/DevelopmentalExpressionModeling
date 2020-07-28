@@ -13,7 +13,7 @@ params.extentSim = 1/sqrt(params.numDims); % physical extent of the grid (square
 params.numGradients = 1861;
 params.whatGradients = 'spatialLag'; % 'linear' 'poly', 'Gaussian', 'GaussianFixedScale', 'ExpDecaySingle'
 params.ensembleParams = struct();
-params.ensembleParams.rho = 0.16; % relative strength of spatial autocorrelation (relative to noise)
+params.ensembleParams.rho = 0.4164; % relative strength of spatial autocorrelation (relative to noise)
 params.ensembleParams.d0 = []; % spatial scale
 
 % Normalization of each gradient:
@@ -33,7 +33,7 @@ params.includeScatter = false;
 % spatialScalingFactors = [3.52,5.7,6.6,7.84,10.56,12.8,13.6];
 % spatialScalingFactor = [1,1,1,1,1];
 % For genes that scale--fraction of average distance
-params.d0scalingFactor = 8.41;
+params.d0scalingFactor = 15.5798;
 % This proportion of genes obey the d0 scaling factor, other genes stay put.
 params.propGenesThatScale = 1;
 
